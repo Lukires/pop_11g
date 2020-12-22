@@ -2,12 +2,22 @@ module Game
 open System
 open System.Collections.Generic
 
+/// <summary>
+///  Canvas er objektet vi tegner på, som så outputter det en konsollen.
+/// </summary>
+/// <param name="rows"> Størrelse i x retningen </param>
+/// <param name="cols"> Størrelse i y retningen </param>
 type Canvas(rows:int, cols:int) =
     do 
         Console.SetWindowSize(1, 1)
         Console.SetWindowSize(rows, cols)
     let mutable grid = Array2D.init rows cols (fun i j -> ('.', System.ConsoleColor.White, System.ConsoleColor.Black))
     
+    /// <summary>
+    ///  Tager en ConsoleColor og konvertere den til dens lignende ANSI værdi
+    /// </summary>
+    /// <param name="color"> Tager en ConsoleColor</param>
+    /// <returns> Baggrund ANSI farve færdig </returns
     static member bgToAnsi(color:System.ConsoleColor) : int =
             match color with
             | System.ConsoleColor.Black -> 40
@@ -18,6 +28,12 @@ type Canvas(rows:int, cols:int) =
             | System.ConsoleColor.White -> 107
             | System.ConsoleColor.Yellow -> 103
             | _ -> 41
+
+    /// <summary>
+    ///  Tager en ConsoleColor og konvertere den til dens lignende ANSI værdi
+    /// </summary>
+    /// <param name="color"> Tager en ConsoleColor</param>
+    /// <returns> Foregrund ANSI farve færdig </returns
     static member fgToAnsi(color:System.ConsoleColor) : int =
             match color with
             | System.ConsoleColor.Black -> 30
@@ -29,9 +45,16 @@ type Canvas(rows:int, cols:int) =
             | System.ConsoleColor.Yellow -> 93
             | _ -> 31
     
+    /// <summary>
+    ///  Rydder det nuværende canvas
+    /// </summary>
     member this.Clear() = grid <- Array2D.init rows cols (fun i j -> ('.', System.ConsoleColor.White, System.ConsoleColor.Black))
     member this.Set(x:int, y:int, c:char, fg:System.ConsoleColor, bg:System.ConsoleColor) =
         Array2D.set grid y x (c, fg, bg)
+    
+    /// <summary>
+    ///  Viser det nuværende canvas i konsollen
+    /// </summary>
     member this.Show() =
         System.Console.Clear()
         System.Console.SetCursorPosition(0,0)
@@ -43,22 +66,72 @@ type Canvas(rows:int, cols:int) =
         ) grid
         System.Console.Write(stringBuilder)
         System.Console.ResetColor()
+
+    /// <summary>
+    ///  Giver højden på det nuværende canvas
+    /// </summary>
+    /// <returns>Integer, højde</returns>
     member this.GetHeight() = rows
+
+    /// <summary>
+    ///  Giver bredden på det nuværende canvas
+    /// </summary>
+    /// <returns>Integer, bredde</returns>
     member this.GetWidth() = cols
+
+    /// <summary>
+    ///  Giver det bogstav, samt farve, der bliver vist på det angivet koordinat i det nuværende canvas
+    /// </summary>
+    /// <param name="x"> En x koordinat på det nuværende canvas.</param>
+    /// <param name="y"> En y koordinat på det nuværende canvas.</param>
+    /// <returns>char, System.ConsoleColor, System.ConsoleColor</returns>
     member this.Get(x:int, y:int) = Array2D.get grid y x
 
+
+/// <summary>
+///  Entity er en abstrakt klasse der holder alle de ting der kan blive vist på vores canvas
+/// </summary>
+/// <param name="x"> X koordinat</param>
+/// <param name="y"> Y koordinat</param>
 [<AbstractClass;>]
 type Entity(_x:int, _y:int) =
     let mutable position = (_x, _y)
+    /// <summary>
+    ///  Character er det tegn som vil blive tegnet på vores canvas. Character skal helst være unikt
+    /// </summary>
+    /// <returns>char</returns>
     abstract member Character: unit -> char
+    /// <summary>
+    ///  Color er den farve som vil blive tegnet på vores canvas.
+    /// </summary>
+    /// <returns>System.ConsoleColor</returns>
     abstract member Color: unit -> System.ConsoleColor
+    
+    /// <summary>
+    ///  Position er vores entity's nuværende position
+    /// </summary>
+    /// <returns>x:int og y:int</returns>
     member this.GetPosition() = position
+
+    /// <summary>
+    ///  Vil tegne vores entity, udfra dets position, color og character, på det angivet canvas
+    /// </summary>
+    /// <param name="canvas">Canvas objekt til at tegne på</param>
     member this.Render(canvas:Canvas) =
         canvas.Set(fst position, snd position, this.Character(), this.Color(), System.ConsoleColor.Black)
     
+    /// <summary>
+    ///  Set vores entity's nuværende position
+    /// </summary>
+    /// <param name="position">Position er en tuple med henholdsvis 2 ints: x og y</param>
     member this.SetPosition(_position:int*int) =
         position <- _position
     
+    /// <summary>
+    ///  Set vores entity's nuværende position
+    /// </summary>
+    /// <param name="position">Position er en tuple med henholdsvis 2 ints: x og y</param>
+    member this.SetPosition(_position:int*int) =
     override this.Equals(other) =
         if (other :? Entity) then false
         else
@@ -227,7 +300,7 @@ type World(_difficulity:int) =
         let rec spawn(left:int) =
             if (left<=0) then ()
             else
-            let rng = System.Random().Next(1,5)
+            let rng = System.Random().Next(0,5)
             if(rng=0) then 
                 this.AddItem(FleshEatingPlant(this.GetEmptySpot()))
                 spawn(left-1)
