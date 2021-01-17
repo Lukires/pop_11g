@@ -127,11 +127,6 @@ type Entity(_x:int, _y:int) =
     member this.SetPosition(_position:int*int) =
         position <- _position
     
-    /// <summary>
-    ///  Set vores entity's nuværende position
-    /// </summary>
-    /// <param name="position">Position er en tuple med henholdsvis 2 ints: x og y</param>
-    member this.SetPosition(_position:int*int) =
     override this.Equals(other) =
         if (other :? Entity) then false
         else
